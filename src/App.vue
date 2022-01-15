@@ -70,17 +70,8 @@
           </div>
         </div>
 
-        <!-- <div class="mt-3">
-          <h3>Asignar al repartidor:</h3>
-
-          <div v-for="repartidor, index, in repartidores" :key="index">
-            <input type="radio" :id="`${repartidor.telefono}-${index}`" class="me-2" :value="repartidor" v-model="rep">
-            <label :for="`${repartidor.telefono}-${index}`">{{repartidor.nombre}}</label>
-          </div>
-        </div> -->
-
         <div class="mt-3">
-          <!-- NOTE: Ordenar -->
+          <!-- NOTE: Agregar a la lista -->
           <button type="submit" class="btn btn-primary p-3">Agregar orden a lista de espera</button>
         </div>
       </div>
@@ -88,7 +79,10 @@
       <div id="lista-espera" class="flex-grow-1 ps-3">
         <!-- NOTE: Lista de espera -->
         <h3>Lista de espera</h3>
-        <div v-for="pedidoListo, index in lista" :key="index" class="bg-grey p-2 rounded mb-4">
+        <div v-if="lista.length == 0">
+          <p>Aún no hay pedidos</p>
+        </div>
+        <div v-else v-for="pedidoListo, index in lista" :key="index" class="bg-grey p-2 rounded mb-4" role="button" v-on:click="abrirPedido(pedidoListo, index)">
           <p>Para: <strong>{{pedidoListo.entrega.nombre}}</strong></p>
           <p>Costo de envio: <strong>${{pedidoListo.costo}}</strong></p>
           <p>Recolecciones:</p>
@@ -101,6 +95,53 @@
       </div>
 
     </form>
+
+    <div v-if="pedidoSeleccionado" class="pop-up bg-light rounded p-5 shadow">
+      <div class=" d-flex">
+        <div>
+          <h4>Resumen del pedido</h4>
+          <div>
+            <h5>Entrega</h5>
+            <div class="ps-3">
+              <p>Nombre: {{pedidoSeleccionado.entrega.nombre}}</p>
+              <p>Telefono: {{pedidoSeleccionado.entrega.numero}}</p>
+              <p>Domicilio: {{pedidoSeleccionado.entrega.domicilio}}</p>
+              <p>Referencias: {{pedidoSeleccionado.entrega.referencias}}</p>
+            </div>
+          </div>
+          <div>
+            <h5>Recolecciones</h5>
+            <div class="ps-3" v-for="recoleccion, index in pedidoSeleccionado.recolecciones" :key="index">
+              <p class="fw-bold">{{recoleccion.nombre}}</p>
+              <div class="ps-3">
+                <p>Orden: {{recoleccion.orden}}</p>
+                <p>Domicilio: {{recoleccion.domicilio}}</p>
+                <p>Referencias: {{recoleccion.referencias}}</p>
+                <p>indicacionesEspeciales: {{recoleccion.indicacionesEspeciales}}</p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h5>Costo de envio: ${{pedidoSeleccionado.costo}}</h5>
+          </div>
+        </div>
+
+        <div class="ms-5">
+          <div class="">
+            <h4 class="fw-light">Asignar al repartidor para <strong class="fw-bold">{{pedidoSeleccionado.entrega.nombre}}</strong>:</h4>
+            <div v-for="repartidor, index, in repartidores" :key="index">
+              <input type="radio" :id="`${repartidor.telefono}-${index}`" class="me-2" :value="repartidor" v-model="rep">
+              <label :for="`${repartidor.telefono}-${index}`">{{repartidor.nombre}}</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3 justify-content-between d-flex">
+        <button class="btn btn-danger" v-on:click="eliminarPedido(pedidoSeleccionado.index)">Eliminar pedido</button>
+        <button class="btn btn-danger" v-on:click="cerrarPedido">Cancelar</button>
+        <button class="btn btn-success" v-on:click="asignarPedido">Asignar</button>
+      </div>
+    </div>
 
   </div>
 </template>
@@ -115,6 +156,8 @@ export default {
   setup() {
     // Setup state
     var lista = ref([]);
+    const pedidoSeleccionado = ref(undefined);
+    const rep = ref(undefined);
     const pedido = reactive({
       entrega: {
         nombre: "",
@@ -152,21 +195,53 @@ export default {
     const agregarOrdenALista = () => {
       // Agregar el pedido a la lista
       lista.value.push(pedido);
-
       // Guardar la lista en el localStorage
       localStorage.setItem("lista", JSON.stringify(lista.value));
+      lista.value = JSON.parse(localStorage.getItem("lista"));
 
-      // // limpiar las forms
+      // limpiar las forms
+      pedido.entrega = {
+        nombre: "",
+        numero: undefined,
+        domicilio: "",
+        referencias: "",
+      };
+      pedido.recolecciones = [
+        {
+          ...recoleccionSchema,
+        },
+      ];
+      pedido.costo = 38;
+    };
+
+    const abrirPedido = (pedido, index) => {
+      console.log(index);
+      pedidoSeleccionado.value = { ...pedido, index };
+    };
+
+    const cerrarPedido = () => {
+      pedidoSeleccionado.value = null;
+    };
+
+    const eliminarPedido = (index) => {
+      lista.value.splice(index, 1);
+      localStorage.setItem("lista", JSON.stringify(lista.value));
+      pedidoSeleccionado.value = null;
     };
 
     // Return to bind 'em
     return {
+      rep,
       pedido,
       agregarRecoleccion,
       eliminarRecoleccion,
       agregarOrdenALista,
+      abrirPedido,
+      cerrarPedido,
       repartidores,
       lista,
+      eliminarPedido,
+      pedidoSeleccionado,
     };
   },
 };
@@ -178,6 +253,11 @@ p {
 }
 #lista-espera {
   border-left: 1px solid rgb(126, 126, 126);
+}
+.pop-up {
+  position: absolute;
+  top: 100px;
+  right: 30%;
 }
 .bg-grey {
   background-color: rgb(219, 219, 219);

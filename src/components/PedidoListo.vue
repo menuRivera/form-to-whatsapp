@@ -1,14 +1,23 @@
 <template>
-  <div v-for="pedido, index in pedidos" :key="index">
-    <p>{{pedido.cliente.nombre}}</p>
+  <p>Para: <strong>{{pedidoListo.entrega.nombre}}</strong></p>
+  <p>Costo de envio: <strong>${{pedidoListo.costo}}</strong></p>
+  <p>Recolecciones:</p>
+  <div class="ms-4">
+    <div v-for="recoleccion, index2 in pedidoListo.recolecciones" :key="index2">
+      <p>{{index2 + 1}}: <strong>{{recoleccion.nombre}}</strong></p>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
   name: "lista",
+  props: {
+    pedido: Object,
+    index: Number,
+  },
   setup(props) {
-    const { pedidos } = props;
+    console.log(props.index);
     // // Armar la orden
     // lista.value.push(JSON.parse(JSON.stringify(pedido)));
     // var entrega = `*PEDIDO PARA: ${cliente.nombre.toUpperCase()}*\n  Teléfono: ${
@@ -24,10 +33,6 @@ export default {
     //   rep.value.telefono
     // }&text=${encodeURIComponent(orden)}&app_absent=0`;
     // window.open(ordenUrl, "https://web.whatsapp.com/");
-
-    return {
-      pedidos,
-    };
   },
 };
 </script>

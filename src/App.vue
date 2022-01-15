@@ -137,9 +137,10 @@
         </div>
       </div>
       <div class="mt-3 justify-content-between d-flex">
-        <button class="btn btn-danger" v-on:click="eliminarPedido(pedidoSeleccionado.index)">Eliminar pedido</button>
+        <button class="btn btn-dark" v-on:click="eliminarPedido(pedidoSeleccionado.index)">Eliminar pedido</button>
         <button class="btn btn-danger" v-on:click="cerrarPedido">Cancelar</button>
-        <button class="btn btn-success" v-on:click="asignarPedido">Asignar</button>
+        <button v-if="rep" class="btn btn-success" v-on:click="asignarPedido(pedidoSeleccionado, rep); rep = undefined;">Asignar</button>
+        <p v-else class="">Selecciona un repartidor para continuar</p>
       </div>
     </div>
 
@@ -151,6 +152,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import { repartidores } from "./util/repartidores";
 import { recoleccionSchema } from "./util/recoleccionSchema";
 import { reactive, ref } from "@vue/reactivity";
+import { asignarPedido } from "./js/asignarPedido";
 export default {
   name: "App",
   setup() {
@@ -181,7 +183,6 @@ export default {
       localStorage.setItem("lista", JSON.stringify([]));
     }
     lista.value = JSON.parse(localStorage.getItem("lista"));
-    console.log("Lista de pedidos:", lista.value);
 
     // Functions
     const agregarRecoleccion = () => {
@@ -215,11 +216,11 @@ export default {
     };
 
     const abrirPedido = (pedido, index) => {
-      console.log(index);
       pedidoSeleccionado.value = { ...pedido, index };
     };
 
     const cerrarPedido = () => {
+      rep.value = undefined;
       pedidoSeleccionado.value = null;
     };
 
@@ -241,6 +242,7 @@ export default {
       repartidores,
       lista,
       eliminarPedido,
+      asignarPedido,
       pedidoSeleccionado,
     };
   },

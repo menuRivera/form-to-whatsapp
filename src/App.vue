@@ -195,7 +195,7 @@ export default {
 
     const agregarOrdenALista = () => {
       // Agregar el pedido a la lista
-      lista.value.push(pedido);
+      lista.value.unshift(pedido);
       // Guardar la lista en el localStorage
       localStorage.setItem("lista", JSON.stringify(lista.value));
       lista.value = JSON.parse(localStorage.getItem("lista"));
